@@ -1,0 +1,17 @@
+CREATE POLICY "Allow authenticated uploads" ON "storage"."buckets"
+AS PERMISSIVE FOR INSERT
+TO authenticated
+
+WITH CHECK (auth.uid() IS NOT NULL)
+
+CREATE POLICY "Allow public read 1vs8c42_0" ON storage.objects FOR SELECT TO anon, authenticated USING (bucket_id = 'gallery');
+
+CREATE POLICY "Allow authenticated delete" ON "storage"."buckets"
+AS PERMISSIVE FOR DELETE
+TO authenticated
+USING (auth.uid() IS NOT NULL)
+
+
+33dc6bc1ed817c6e4dfd3efba9f85706
+
+805fe7c76b217461d5a80927886d390265fb7c4fd38108a993a90064e7c741cc

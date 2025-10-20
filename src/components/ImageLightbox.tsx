@@ -16,6 +16,61 @@ interface ImageLightboxProps {
   onPrev: () => void;
 }
 
+// Fonction pour extraire la couleur dominante
+const extractDominantColor = (imageUrl: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        resolve('rgba(0, 0, 0, 0.8)');
+        return;
+      }
+      
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      
+      try {
+        const samples = [
+          { x: img.width * 0.25, y: img.height * 0.25 },
+          { x: img.width * 0.75, y: img.height * 0.25 },
+          { x: img.width * 0.5, y: img.height * 0.5 },
+          { x: img.width * 0.25, y: img.height * 0.75 },
+          { x: img.width * 0.75, y: img.height * 0.75 },
+        ];
+        
+        let r = 0, g = 0, b = 0;
+        
+        samples.forEach(sample => {
+          const pixel = ctx.getImageData(sample.x, sample.y, 1, 1).data;
+          r += pixel[0];
+          g += pixel[1];
+          b += pixel[2];
+        });
+        
+        r = Math.floor(r / samples.length);
+        g = Math.floor(g / samples.length);
+        b = Math.floor(b / samples.length);
+        
+        resolve(`rgba(${r}, ${g}, ${b}, 0.95)`);
+      } catch (error) {
+        resolve('rgba(0, 0, 0, 0.8)');
+      }
+    };
+    
+    img.onerror = () => {
+      resolve('rgba(0, 0, 0, 0.8)');
+    };
+    
+    img.src = imageUrl;
+  });
+};
+
 export const ImageLightbox = ({
   images,
   currentIndex,
@@ -31,6 +86,7 @@ export const ImageLightbox = ({
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [scrollPosition, setScrollPosition] = useState({ x: 0, y: 0 });
+  const [backgroundColor, setBackgroundColor] = useState('rgba(0, 0, 0, 0.95)');
   
   const containerRef = useRef<HTMLDivElement>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -39,6 +95,15 @@ export const ImageLightbox = ({
   const minSwipeDistance = 50;
   const currentImage = images[currentIndex];
   const shouldZoomFullscreen = currentImage?.fullscreen_zoom || false;
+
+  // Extraire la couleur de fond pour chaque image
+  useEffect(() => {
+    if (currentImage?.image) {
+      extractDominantColor(currentImage.image).then(color => {
+        setBackgroundColor(color);
+      });
+    }
+  }, [currentImage]);
 
   // Reset zoom quand on change d'image
   useEffect(() => {
@@ -199,13 +264,12 @@ export const ImageLightbox = ({
   // Double-clic/tap pour zoomer
   const lastTapRef = useRef(0);
   const handleImageClick = (e: React.MouseEvent | React.TouchEvent) => {
-    if (isDragging) return; // Ne pas zoomer si on est en train de drag
+    if (isDragging) return;
     
     const now = Date.now();
     const timeSinceLastTap = now - lastTapRef.current;
     
     if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-      // Double-clic détecté
       setIsZoomed(!isZoomed);
       setScrollPosition({ x: 0, y: 0 });
       resetControlsTimeout();
@@ -230,7 +294,8 @@ export const ImageLightbox = ({
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 z-[100] bg-black"
+      className="fixed inset-0 z-[100] transition-colors duration-500"
+      style={{ backgroundColor }}
       onMouseMove={resetControlsTimeout}
       onClick={resetControlsTimeout}
     >
@@ -320,22 +385,39 @@ export const ImageLightbox = ({
           } ${getImageStyle()}`}
           style={isZoomed ? {
             transform: `translate(${scrollPosition.x}px, ${scrollPosition.y}px) scale(2)`,
-            transformOrigin: 'center center'
-          } : undefined}
+            transformOrigin: 'center center',
+            width: currentImage.width ? `${currentImage.width}px` : undefined,
+            height: currentImage.height ? `${currentImage.height}px` : undefined,
+          } : {
+            width: currentImage.width && !shouldZoomFullscreen ? `${currentImage.width}px` : undefined,
+            height: currentImage.height && !shouldZoomFullscreen ? `${currentImage.height}px` : undefined,
+          }}
           draggable={false}
         />
       </div>
 
-      {/* Info en bas */}
+      {/* Info en bas avec dégradé basé sur l'image */}
       <div 
-        className={`absolute bottom-0 left-0 right-0 p-3 md:p-6 text-center bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300 ${
+        className={`absolute bottom-0 left-0 right-0 p-3 md:p-6 text-center transition-opacity duration-300 ${
           showControls ? 'opacity-100' : 'opacity-0'
         }`}
+        style={{
+          background: `linear-gradient(to top, ${backgroundColor} 0%, transparent 100%)`
+        }}
       >
-        <p className="text-xs md:text-sm text-white font-medium drop-shadow-lg mb-2">
-          {currentImage.category}
+        <p className="text-white font-medium text-sm md:text-base mb-2">
+          {currentImage.alt}
         </p>
-        <p className="text-xs text-white/60 drop-shadow-lg">
+        <div className="flex items-center justify-center gap-3 text-xs md:text-sm text-white/80">
+          <span className="uppercase tracking-wide">{currentImage.category}</span>
+          {currentImage.width && currentImage.height && (
+            <span>•</span>
+          )}
+          {currentImage.width && currentImage.height && (
+            <span>{currentImage.width} × {currentImage.height}px</span>
+          )}
+        </div>
+        <p className="text-xs text-white/60 mt-2">
           {isZoomed 
             ? 'Double-clic pour dézoomer • Glisser pour déplacer' 
             : 'Double-clic pour zoomer • Glisser pour changer d\'image'}

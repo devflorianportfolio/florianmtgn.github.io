@@ -13,6 +13,8 @@ import { useSkills } from "@/hooks/useSkills";
 import { useContactInfo } from "@/hooks/useContactInfo";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { Bell } from "lucide-react"; 
+import { AdminNotifications } from "@/components/AdminNotifications";
 import {
   Trash2,
   Plus,
@@ -367,27 +369,13 @@ const Admin = () => {
     setUploading(true);
     try {
       const dimensions = await getImageDimensions(selectedFile);
-
+      const finalWidth = formData.originalWidth || dimensions.width;
+      const finalHeight = formData.originalHeight || dimensions.height;
       let finalFile = selectedFile;
-      let finalWidth = dimensions.width;
-      let finalHeight = dimensions.height;
-
-      if (
-        formData.originalWidth &&
-        formData.originalHeight &&
-        (formData.originalWidth !== dimensions.width ||
-          formData.originalHeight !== dimensions.height)
-      ) {
-        const resized = await resizeImage(
-          selectedFile,
-          formData.originalWidth,
-          formData.originalHeight
-        );
+      if (selectedFile.size > 50 * 1024 * 1024) { //
+        const resized = await resizeImage(selectedFile, 2400, 2400);
         finalFile = resized.file;
-        finalWidth = resized.width;
-        finalHeight = resized.height;
       }
-
       const { data, error } = await supabase.storage
         .from("gallery")
         .upload(`${Date.now()}-${finalFile.name}`, finalFile, {
@@ -396,7 +384,6 @@ const Admin = () => {
         });
 
       if (error) throw error;
-
       const { data: publicData } = supabase.storage
         .from("gallery")
         .getPublicUrl(data.path);
@@ -436,7 +423,6 @@ const Admin = () => {
       setUploading(false);
     }
   };
-
 
   const handleEditFileSelect = async (file, imageId) => {
     if (!file) return;
@@ -481,34 +467,19 @@ const Admin = () => {
         category: editData.category,
         alt: editData.alt,
         fullscreen_zoom: editData.fullscreen_zoom || false,
-        width: editData.originalWidth || 1200,
-        height: editData.originalHeight || 1200,
+        width: editData.originalWidth || null,
+        height: editData.originalHeight || null,
       };
 
-      // --- Si un nouveau fichier est choisi ---
       if (editData.newFile) {
         const dimensions = await getImageDimensions(editData.newFile);
         let finalFile = editData.newFile;
-        let finalWidth = dimensions.width;
-        let finalHeight = dimensions.height;
 
-        // Si l’utilisateur a modifié la taille manuellement, on redimensionne réellement
-        if (
-          (editData.originalWidth && editData.originalHeight) &&
-          (editData.originalWidth !== dimensions.width ||
-          editData.originalHeight !== dimensions.height)
-        ) {
-          const resized = await resizeImage(
-            editData.newFile,
-            editData.originalWidth,
-            editData.originalHeight
-          );
+        if (editData.newFile.size > 50 * 1024 * 1024) {
+          const resized = await resizeImage(editData.newFile, 2400, 2400);
           finalFile = resized.file;
-          finalWidth = resized.width;
-          finalHeight = resized.height;
         }
 
-        // Upload du fichier final (redimensionné ou non)
         const { data, error } = await supabase.storage
           .from("gallery")
           .upload(`${Date.now()}-${finalFile.name}`, finalFile);
@@ -522,12 +493,11 @@ const Admin = () => {
         updateData = {
           ...updateData,
           image_url: publicData.publicUrl,
-          width: finalWidth,
-          height: finalHeight,
+          width: editData.originalWidth || dimensions.width,
+          height: editData.originalHeight || dimensions.height,
         };
       }
 
-      // --- Mise à jour en base ---
       const { error } = await supabase
         .from("gallery_images")
         .update(updateData)
@@ -835,36 +805,48 @@ const Admin = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">
+      <main className="max-w-7xl mx-auto px-0 py-8">
         <Tabs defaultValue="gallery" className="w-full">
-          <div className="mb-6 md:mb-8 overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
-            <TabsList className="inline-flex md:grid md:grid-cols-6 w-max md:w-full min-w-full">
-              <TabsTrigger value="gallery" className="flex items-center gap-2 whitespace-nowrap">
-                <Image className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("gallery")}</span>
-              </TabsTrigger>
-              <TabsTrigger value="about" className="flex items-center gap-2 whitespace-nowrap">
-                <User className="w-4 h-4" />
-                <span className="hidden sm:inline">About</span>
-              </TabsTrigger>
-              <TabsTrigger value="skills" className="flex items-center gap-2 whitespace-nowrap">
-                <Briefcase className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("skills")}</span>
-              </TabsTrigger>
-              <TabsTrigger value="contact" className="flex items-center gap-2 whitespace-nowrap">
-                <Mail className="w-4 h-4" />
-                <span className="hidden sm:inline">Contact</span>
-              </TabsTrigger>
-              <TabsTrigger value="social" className="flex items-center gap-2 whitespace-nowrap">
-                <Share2 className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("social")}</span>
-              </TabsTrigger>
-              <TabsTrigger value="analytics" className="flex items-center gap-2 whitespace-nowrap">
-                <BarChart3 className="w-4 h-4" />
-                <span className="hidden sm:inline">{t("analytics")}</span>
-              </TabsTrigger>
+          <div className="mb-8">
+            <TabsList
+              className="
+                grid grid-cols-7 gap-2
+                w-full
+                bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40
+                border border-border/60 backdrop-blur-md
+                rounded-xl p-1.5 sm:p-2 shadow-sm hover:shadow-md transition-all
+                h-12 md:h-14
+              "
+            >
+              {[
+                { value: 'gallery', icon: Image, label: t('gallery') },
+                { value: 'about', icon: User, label: 'About' },
+                { value: 'skills', icon: Briefcase, label: t('skills') },
+                { value: 'contact', icon: Mail, label: 'Contact' },
+                { value: 'social', icon: Share2, label: t('social') },
+                { value: 'analytics', icon: BarChart3, label: t('analytics') },
+                { value: 'notifications', icon: Bell, label: 'Notifications' },
+              ].map(({ value, icon: Icon, label }) => (
+                <TabsTrigger
+                  key={value}
+                  value={value}
+                  className="
+                    flex items-center justify-center gap-2
+                    w-full h-9 md:h-10 px-3 sm:px-4 rounded-lg
+                    text-sm md:text-base font-medium text-muted-foreground
+                    hover:text-foreground hover:bg-accent/50 active:scale-95
+                    transition-all duration-200
+                    data-[state=active]:bg-foreground data-[state=active]:text-background
+                    data-[state=active]:shadow-inner
+                  "
+                >
+                  <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                  <span>{label}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
           </div>
+
 
           <TabsContent value="gallery" className="space-y-6 md:space-y-8">
             <motion.div
@@ -1702,6 +1684,10 @@ const Admin = () => {
 
           <TabsContent value="analytics">
             <AdminAnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <AdminNotifications />
           </TabsContent>
         </Tabs>
       </main>

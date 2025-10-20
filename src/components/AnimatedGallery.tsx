@@ -16,11 +16,67 @@ interface GalleryImage {
   fullscreen_zoom?: boolean;
 }
 
+const extractDominantColor = (imageUrl: string): Promise<string> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      if (!ctx) {
+        resolve('rgba(0, 0, 0, 0.3)');
+        return;
+      }
+      
+      canvas.width = img.width;
+      canvas.height = img.height;
+      ctx.drawImage(img, 0, 0);
+      
+      try {
+        // Échantillonner plusieurs points de l'image
+        const samples = [
+          { x: img.width * 0.25, y: img.height * 0.25 },
+          { x: img.width * 0.75, y: img.height * 0.25 },
+          { x: img.width * 0.5, y: img.height * 0.5 },
+          { x: img.width * 0.25, y: img.height * 0.75 },
+          { x: img.width * 0.75, y: img.height * 0.75 },
+        ];
+        
+        let r = 0, g = 0, b = 0;
+        
+        samples.forEach(sample => {
+          const pixel = ctx.getImageData(sample.x, sample.y, 1, 1).data;
+          r += pixel[0];
+          g += pixel[1];
+          b += pixel[2];
+        });
+        
+        r = Math.floor(r / samples.length);
+        g = Math.floor(g / samples.length);
+        b = Math.floor(b / samples.length);
+        
+        resolve(`rgba(${r}, ${g}, ${b}, 0.7)`);
+      } catch (error) {
+        resolve('rgba(0, 0, 0, 0.3)');
+      }
+    };
+    
+    img.onerror = () => {
+      resolve('rgba(0, 0, 0, 0.3)');
+    };
+    
+    img.src = imageUrl;
+  });
+};
+
 export const AnimatedGallery = () => {
   const [filter, setFilter] = useState("all");
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [lightboxOpenTime, setLightboxOpenTime] = useState<number>(0);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
+  const [imageColors, setImageColors] = useState<Map<string, string>>(new Map());
   const { data: images, isLoading } = useGalleryImages();
   const { t } = useLanguage();
   const { trackGalleryInteraction, trackClick, trackSearch } = useAnalytics();
@@ -34,15 +90,21 @@ export const AnimatedGallery = () => {
     ? images 
     : images?.filter((img: GalleryImage) => img.category === filter);
 
-  // Précharger les images prioritaires du filtre actuel
+  // Précharger les images et extraire les couleurs
   useEffect(() => {
     if (!filteredImages) return;
     
     const priorityImages = filteredImages.slice(0, 8);
-    priorityImages.forEach((image: GalleryImage) => {
+    priorityImages.forEach(async (image: GalleryImage) => {
       const img = new Image();
       img.src = image.image_url;
       img.onload = () => handleImageLoad(image.id);
+      
+      // Extraire la couleur dominante
+      if (!imageColors.has(image.id)) {
+        const color = await extractDominantColor(image.image_url);
+        setImageColors(prev => new Map(prev).set(image.id, color));
+      }
     });
   }, [filter, filteredImages]);
 
@@ -53,7 +115,7 @@ export const AnimatedGallery = () => {
   if (isLoading) {
     return (
       <section className="py-20 px-4 md:px-6">
-        <div className="max-w-[1400px] mx-auto">
+        <div className="max-w-7xl mx-auto">
           <Skeleton className="h-10 w-48 mb-8" />
           <div className="columns-2 md:columns-3 lg:columns-4 gap-2">
             {[...Array(8)].map((_, i) => (
@@ -201,6 +263,7 @@ export const AnimatedGallery = () => {
           <div className="gallery-container">
             {filteredImages?.map((image: GalleryImage, index: number) => {
               const isLoaded = loadedImages.has(image.id);
+              const dominantColor = imageColors.get(image.id) || 'rgba(0, 0, 0, 0.3)';
               
               return (
                 <motion.div
@@ -217,7 +280,6 @@ export const AnimatedGallery = () => {
                       : 'auto'
                   }}
                 >
-                  {/* Placeholder pendant le chargement */}
                   {!isLoaded && (
                     <div className="absolute inset-0 bg-muted animate-pulse" />
                   )}
@@ -240,17 +302,18 @@ export const AnimatedGallery = () => {
                     initial={{ opacity: 0 }}
                     whileHover={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
-                    className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent"
+                    className="absolute inset-0"
+                    style={{
+                      background: `linear-gradient(to top, ${dominantColor} 0%, transparent 50%)`
+                    }}
                   >
                     <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
-                      <p className="text-white font-medium text-xs md:text-sm tracking-wide uppercase">
+                      <p className="text-white font-medium text-sm md:text-base mb-1">
+                        {image.alt}
+                      </p>
+                      <p className="text-white/70 text-xs md:text-sm tracking-wide uppercase">
                         {image.category}
                       </p>
-                      {image.width && image.height && (
-                        <p className="text-white/70 text-xs mt-1">
-                          {image.width} × {image.height}px
-                        </p>
-                      )}
                     </div>
                   </motion.div>
                 </motion.div>

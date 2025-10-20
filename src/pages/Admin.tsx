@@ -12,7 +12,6 @@ import { useAboutContent } from "@/hooks/useAboutContent";
 import { useSkills } from "@/hooks/useSkills";
 import { useContactInfo } from "@/hooks/useContactInfo";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useAdminAccess } from "@/contexts/AdminAccessContext";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trash2,
@@ -179,9 +178,6 @@ const translations = {
   },
 };
 
-const NOTIFIER_URL = import.meta.env.VITE_NOTIFIER_URL || "https://florianmtgn.fr/notify";
-sessionStorage.setItem('session_start_ts', String(Date.now()));
-
 const Admin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -260,7 +256,7 @@ const Admin = () => {
       });
     }
   }, [aboutData]);
-
+  
   const getImageDimensions = (file) => {
     return new Promise((resolve) => {
       const img = new window.Image();
@@ -779,29 +775,9 @@ const Admin = () => {
     }
   };
 
-  const { currentIp } = useAdminAccess();
-
   const handleLogout = async () => {
-    const tsStart = Number(sessionStorage.getItem('session_start_ts')) || null;
-    const durationMs = tsStart ? (Date.now() - tsStart) : undefined;
-    const email = supabase.auth.getUser?.email || 'unknown';
-
-    await fetch(NOTIFIER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        event: "signout",
-        email,
-        ip: currentIp || null,
-        userAgent: navigator.userAgent,
-        timestamp: Date.now(),
-        durationMs,
-      }),
-    });
-
     await supabase.auth.signOut();
-    sessionStorage.removeItem('session_start_ts');
-    navigate('/');
+    navigate("/");
   };
 
   const categories = Array.from(

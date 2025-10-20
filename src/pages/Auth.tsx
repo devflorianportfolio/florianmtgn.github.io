@@ -9,20 +9,6 @@ import { useAdminAccess } from "@/contexts/AdminAccessContext";
 import { motion } from "framer-motion";
 import { Shield, AlertTriangle } from "lucide-react";
 
-const NOTIFIER_URL = import.meta.env.VITE_NOTIFIER_URL || "https://florianmtgn.fr/notify";
-
-const sendNotify = async (payload: any) => {
-  try {
-    await fetch(NOTIFIER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (err) {
-    console.error("Erreur d'envoi de notification :", err);
-  }
-};
-
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,6 +19,7 @@ const Auth = () => {
   const { hasAccess, loading: checkingAccess, currentIp } = useAdminAccess();
 
   useEffect(() => {
+    // Vérifier si l'utilisateur est déjà connecté
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         navigate("/admin");
@@ -48,6 +35,7 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Rediriger si l'IP n'est pas autorisée
   useEffect(() => {
     if (!checkingAccess && !hasAccess) {
       toast({
@@ -55,7 +43,8 @@ const Auth = () => {
         title: "Accès refusé",
         description: "Votre adresse IP n'est pas autorisée à accéder à cette page.",
       });
-
+      
+      // Rediriger vers la page d'accueil après 2 secondes
       const timer = setTimeout(() => {
         navigate("/");
       }, 2000);
@@ -68,77 +57,27 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    const ua = navigator.userAgent;
-    const ip = currentIp || "Inconnue";
-    const timestamp = Date.now();
-
-    await sendNotify({
-      event: isLogin ? "login_attempt" : "signup_attempt",
-      email,
-      ip,
-      userAgent: ua,
-      method: isLogin ? "password" : "signup",
-      timestamp,
-    });
-
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
-          await sendNotify({
-            event: "login_failed",
-            email,
-            ip,
-            userAgent: ua,
-            method: "password",
-            timestamp: Date.now(),
-            note: error.message,
-          });
-          throw error;
-        }
-
-        await sendNotify({
-          event: "login_success",
+        const { error } = await supabase.auth.signInWithPassword({
           email,
-          ip,
-          userAgent: ua,
-          method: "password",
-          timestamp: Date.now(),
+          password,
         });
-
-        sessionStorage.setItem("session_start_ts", String(Date.now()));
-
-        toast({ title: "Connexion réussie", description: "Bienvenue !" });
+        if (error) throw error;
+        toast({
+          title: "Connexion réussie",
+          description: "Bienvenue !",
+        });
       } else {
         const redirectUrl = `${window.location.origin}/`;
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: redirectUrl },
+          options: {
+            emailRedirectTo: redirectUrl,
+          },
         });
-
-        if (error) {
-          await sendNotify({
-            event: "signup_failed",
-            email,
-            ip,
-            userAgent: ua,
-            method: "signup",
-            timestamp: Date.now(),
-            note: error.message,
-          });
-          throw error;
-        }
-
-        await sendNotify({
-          event: "signup_success",
-          email,
-          ip,
-          userAgent: ua,
-          method: "signup",
-          timestamp: Date.now(),
-        });
-
+        if (error) throw error;
         toast({
           title: "Inscription réussie",
           description: "Vérifiez votre email pour confirmer votre compte.",
@@ -155,10 +94,15 @@ const Auth = () => {
     }
   };
 
+  // Afficher un loader pendant la vérification
   if (checkingAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6 bg-gradient-to-br from-background via-muted/30 to-background">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
           <Shield className="w-16 h-16 mx-auto mb-4 text-muted-foreground animate-pulse" />
           <p className="text-lg text-muted-foreground">Vérification de l'accès...</p>
         </motion.div>
@@ -166,10 +110,15 @@ const Auth = () => {
     );
   }
 
+  // Afficher un message d'erreur si l'IP n'est pas autorisée
   if (!hasAccess) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6 bg-gradient-to-br from-background via-muted/30 to-background">
-        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-md">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md"
+        >
           <div className="bg-card p-8 rounded-lg shadow-lg border border-destructive">
             <div className="flex flex-col items-center text-center">
               <AlertTriangle className="w-16 h-16 text-destructive mb-4" />
@@ -192,15 +141,28 @@ const Auth = () => {
     );
   }
 
+  // Afficher le formulaire de connexion si l'IP est autorisée
   return (
     <div className="min-h-screen flex items-center justify-center px-6 bg-gradient-to-br from-background via-muted/30 to-background">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md">
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="bg-card p-8 rounded-lg shadow-lg border border-border">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+      >
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="bg-card p-8 rounded-lg shadow-lg border border-border"
+        >
           <div className="flex items-center justify-center mb-6">
             <Shield className="w-8 h-8 text-primary mr-2" />
-            <h1 className="text-3xl font-bold">{isLogin ? "Connexion" : "Inscription"}</h1>
+            <h1 className="text-3xl font-bold">
+              {isLogin ? "Connexion" : "Inscription"}
+            </h1>
           </div>
-
+          
           {currentIp && (
             <div className="mb-4 p-3 bg-muted rounded-lg">
               <p className="text-xs text-muted-foreground text-center">
@@ -208,29 +170,45 @@ const Auth = () => {
               </p>
             </div>
           )}
-
+          
           <form onSubmit={handleAuth} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="mt-1" />
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="mt-1"
+              />
             </div>
-
+            
             <div>
               <Label htmlFor="password">Mot de passe</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="mt-1" />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="mt-1"
+              />
             </div>
-
+            
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Chargement..." : isLogin ? "Se connecter" : "S'inscrire"}
             </Button>
           </form>
-
+          
           <div className="mt-4 text-center">
             <button
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              {isLogin ? "Pas de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
+              {isLogin
+                ? "Pas de compte ? S'inscrire"
+                : "Déjà un compte ? Se connecter"}
             </button>
           </div>
         </motion.div>

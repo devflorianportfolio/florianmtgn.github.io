@@ -15,6 +15,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell } from "lucide-react"; 
 import { AdminNotifications } from "@/components/AdminNotifications";
+import { useSiteConfig } from "@/hooks/useSiteConfig";
+import { ThemePreview } from "@/components/ThemePreview";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import {
   Trash2,
   Plus,
@@ -36,6 +39,18 @@ import {
   Share2,
   BarChart3,
   Maximize2,
+  Settings, 
+  Palette,  
+  Zap, 
+  Shield, 
+  Search,
+  Sun,
+  Moon,
+  Layers,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  AlertCircle
 } from "lucide-react";
 import { AdminAnalyticsDashboard } from "@/components/AdminAnalyticsDashboard";
 
@@ -109,6 +124,70 @@ const translations = {
     imageDimensions: "Dimensions de l'image",
     originalSize: "Taille originale",
     autoResize: "Redimensionner automatiquement",
+    config: "Configuration",
+    themeSettings: "Apparence & Thème",
+    generalSettings: "Paramètres généraux",
+    gallerySettings: "Configuration de la galerie",
+    performanceSettings: "Performance & Optimisation",
+    securitySettings: "Sécurité & Protection",
+    seoSettings: "Référencement (SEO)",
+    themeMode: "Mode du thème",
+    themeModeDesc: "Définissez comment le thème s'applique sur votre site",
+    lightOnly: "Clair uniquement",
+    darkOnly: "Sombre uniquement",
+    bothThemes: "Les deux",
+    defaultTheme: "Thème par défaut",
+    defaultThemeDesc: "Thème affiché au premier chargement",
+    allowSwitch: "Autoriser le changement",
+    allowSwitchDesc: "Les visiteurs peuvent basculer entre clair/sombre",
+    lightTheme: "Clair",
+    darkTheme: "Sombre",
+    siteName: "Nom du site",
+    siteNamePlaceholder: "Mon Portfolio Photo",
+    siteDescription: "Description du site",
+    siteDescPlaceholder: "Décrivez votre site en quelques mots...",
+    siteLanguage: "Langue du site",
+    maintenanceMode: "Mode maintenance",
+    maintenanceModeDesc: "Désactive le site pour les visiteurs",
+    maintenanceActive: "⚠️ Le mode maintenance est ACTIVÉ",
+    imagesPerPage: "Images par page",
+    imagesPerPageDesc: "Nombre d'images affichées (pagination)",
+    enableDownload: "Téléchargement autorisé",
+    enableDownloadDesc: "Permet de télécharger les images",
+    galleryLayout: "Disposition de la galerie",
+    layoutGrid: "Grille classique",
+    layoutMasonry: "Mosaïque (Masonry)",
+    layoutJustified: "Justifiée",
+    watermarkEnabled: "Filigrane activé",
+    watermarkEnabledDesc: "Ajoute un filigrane sur les images",
+    lazyLoading: "Chargement différé",
+    lazyLoadingDesc: "Charge les images uniquement quand visibles",
+    compressionQuality: "Qualité de compression",
+    compressionQualityDesc: "Plus la valeur est basse, plus les fichiers sont légers",
+    enableAnimations: "Animations",
+    enableAnimationsDesc: "Active les animations et transitions",
+    metaTitle: "Titre SEO",
+    metaTitlePlaceholder: "Portfolio - Prénom Nom",
+    metaKeywords: "Mots-clés SEO",
+    metaKeywordsPlaceholder: "photographie, portrait, mariage...",
+    enableAnalytics: "Analytics activés",
+    enableAnalyticsDesc: "Active le suivi des statistiques",
+    disableRightClick: "Désactiver clic-droit",
+    disableRightClickDesc: "Empêche de copier les images facilement",
+    watermarkText: "Texte du filigrane",
+    watermarkTextPlaceholder: "© Mon Nom",
+    watermarkOpacity: "Opacité du filigrane",
+    saveConfig: "Enregistrer la configuration",
+    saving: "Enregistrement...",
+    resetConfig: "Réinitialiser",
+    resetConfigDesc: "Revenir aux valeurs par défaut",
+    configSaved: "✅ Configuration enregistrée",
+    configReset: "✅ Configuration réinitialisée",
+    configError: "❌ Erreur lors de la sauvegarde",
+    qualityLow: "Basse",
+    qualityMedium: "Moyenne",
+    qualityHigh: "Haute",
+    previewTitle: "Aperçu du thème",
   },
   en: {
     admin: "Administration",
@@ -177,6 +256,70 @@ const translations = {
     imageDimensions: "Image dimensions",
     originalSize: "Original size",
     autoResize: "Auto-resize",
+    config: "Configuration",
+    themeSettings: "Appearance & Theme",
+    generalSettings: "General Settings",
+    gallerySettings: "Gallery Configuration",
+    performanceSettings: "Performance & Optimization",
+    securitySettings: "Security & Protection",
+    seoSettings: "Search Engine Optimization",
+    themeMode: "Theme mode",
+    themeModeDesc: "Define how the theme applies to your site",
+    lightOnly: "Light only",
+    darkOnly: "Dark only",
+    bothThemes: "Both",
+    defaultTheme: "Default theme",
+    defaultThemeDesc: "Theme displayed on first load",
+    allowSwitch: "Allow switching",
+    allowSwitchDesc: "Visitors can switch between light/dark",
+    lightTheme: "Light",
+    darkTheme: "Dark",
+    siteName: "Site name",
+    siteNamePlaceholder: "My Photo Portfolio",
+    siteDescription: "Site description",
+    siteDescPlaceholder: "Describe your site in a few words...",
+    siteLanguage: "Site language",
+    maintenanceMode: "Maintenance mode",
+    maintenanceModeDesc: "Disables the site for visitors",
+    maintenanceActive: "⚠️ Maintenance mode is ACTIVE",
+    imagesPerPage: "Images per page",
+    imagesPerPageDesc: "Number of images displayed (pagination)",
+    enableDownload: "Download enabled",
+    enableDownloadDesc: "Allows downloading images",
+    galleryLayout: "Gallery layout",
+    layoutGrid: "Classic grid",
+    layoutMasonry: "Masonry",
+    layoutJustified: "Justified",
+    watermarkEnabled: "Watermark enabled",
+    watermarkEnabledDesc: "Adds a watermark to images",
+    lazyLoading: "Lazy loading",
+    lazyLoadingDesc: "Loads images only when visible",
+    compressionQuality: "Compression quality",
+    compressionQualityDesc: "Lower value means lighter files",
+    enableAnimations: "Animations",
+    enableAnimationsDesc: "Enables animations and transitions",
+    metaTitle: "SEO Title",
+    metaTitlePlaceholder: "Portfolio - First Last",
+    metaKeywords: "SEO Keywords",
+    metaKeywordsPlaceholder: "photography, portrait, wedding...",
+    enableAnalytics: "Analytics enabled",
+    enableAnalyticsDesc: "Enables statistics tracking",
+    disableRightClick: "Disable right-click",
+    disableRightClickDesc: "Prevents easy image copying",
+    watermarkText: "Watermark text",
+    watermarkTextPlaceholder: "© My Name",
+    watermarkOpacity: "Watermark opacity",
+    saveConfig: "Save configuration",
+    saving: "Saving...",
+    resetConfig: "Reset",
+    resetConfigDesc: "Return to default values",
+    configSaved: "✅ Configuration saved",
+    configReset: "✅ Configuration reset",
+    configError: "❌ Error saving",
+    qualityLow: "Low",
+    qualityMedium: "Medium",
+    qualityHigh: "High",
+    previewTitle: "Theme preview",
   },
 };
 
@@ -745,6 +888,88 @@ const Admin = () => {
     }
   };
 
+  const { 
+    config: siteConfig, 
+    updateConfig, 
+    isUpdating, 
+    resetConfig, 
+    isResetting, 
+    refetch,
+    isLoading  // ← Ajoutez ceci
+  } = useSiteConfig();
+
+  const [configFormData, setConfigFormData] = useState({
+    theme_mode: 'both',
+    default_theme: 'light',
+    allow_theme_switch: true,
+    site_name: '',
+    site_description: '',
+    site_language: 'fr',
+    maintenance_mode: false,
+    images_per_page: 12,
+    enable_image_download: false,
+    watermark_enabled: false,
+    gallery_layout: 'grid',
+    lazy_loading_enabled: true,
+    image_compression_quality: 85,
+    enable_animations: true,
+    meta_title: '',
+    meta_keywords: '',
+    enable_analytics: true,
+    disable_right_click: false,
+    watermark_text: '',
+    watermark_opacity: 30,
+  });
+
+    useEffect(() => {
+    if (siteConfig) {
+      setConfigFormData({
+        theme_mode: siteConfig.theme_mode || 'both',
+        default_theme: siteConfig.default_theme || 'light',
+        allow_theme_switch: siteConfig.allow_theme_switch ?? true,
+        site_name: siteConfig.site_name || '',
+        site_description: siteConfig.site_description || '',
+        site_language: siteConfig.site_language || 'fr',
+        maintenance_mode: siteConfig.maintenance_mode || false,
+        images_per_page: siteConfig.images_per_page || 12,
+        enable_image_download: siteConfig.enable_image_download || false,
+        watermark_enabled: siteConfig.watermark_enabled || false,
+        gallery_layout: siteConfig.gallery_layout || 'grid',
+        lazy_loading_enabled: siteConfig.lazy_loading_enabled ?? true,
+        image_compression_quality: siteConfig.image_compression_quality || 85,
+        enable_animations: siteConfig.enable_animations ?? true,
+        meta_title: siteConfig.meta_title || '',
+        meta_keywords: siteConfig.meta_keywords || '',
+        enable_analytics: siteConfig.enable_analytics ?? true,
+        disable_right_click: siteConfig.disable_right_click || false,
+        watermark_text: siteConfig.watermark_text || '',
+        watermark_opacity: siteConfig.watermark_opacity || 30,
+      });
+    }
+  }, [siteConfig]);
+
+  const handleUpdateConfig = async (e) => {
+    e.preventDefault();
+    
+    try {
+      await updateConfig(configFormData);
+      
+      toast({
+        title: t("configSaved"),
+        description: language === "fr" 
+          ? "Vos modifications ont été enregistrées avec succès"
+          : "Your changes have been saved successfully",
+      });
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde:", error);
+      toast({
+        variant: "destructive",
+        title: t("configError"),
+        description: error.message,
+      });
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -810,7 +1035,7 @@ const Admin = () => {
           <div className="mb-8">
             <TabsList
               className="
-                grid grid-cols-7 gap-2
+                grid grid-cols-8 gap-2
                 w-full
                 bg-gradient-to-r from-muted/40 via-muted/20 to-muted/40
                 border border-border/60 backdrop-blur-md
@@ -824,6 +1049,7 @@ const Admin = () => {
                 { value: 'skills', icon: Briefcase, label: t('skills') },
                 { value: 'contact', icon: Mail, label: 'Contact' },
                 { value: 'social', icon: Share2, label: t('social') },
+                { value: 'config', icon: Settings, label: t('config') },
                 { value: 'analytics', icon: BarChart3, label: t('analytics') },
                 { value: 'notifications', icon: Bell, label: 'Notifications' },
               ].map(({ value, icon: Icon, label }) => (
@@ -847,6 +1073,530 @@ const Admin = () => {
             </TabsList>
           </div>
 
+          <TabsContent value="config" className="space-y-6">
+            {/* Alerte mode maintenance */}
+            {siteConfig?.maintenance_mode && (
+              <Alert className="border-orange-500 bg-orange-500/10">
+                <AlertCircle className="h-5 w-5 text-orange-500" />
+                <AlertTitle className="text-orange-500 font-bold">
+                  {t("maintenanceActive")}
+                </AlertTitle>
+                <AlertDescription className="text-sm">
+                  {language === "fr" 
+                    ? "Seuls les administrateurs peuvent accéder au site actuellement."
+                    : "Only administrators can access the site currently."}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-card p-6 rounded-xl border border-border shadow-sm"
+            >
+              {/* Header */}
+              <div className="flex items-start justify-between mb-8">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-primary/10 rounded-xl">
+                    <Settings className="w-7 h-7 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold">{t("config")}</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {language === "fr" 
+                        ? "Personnalisez l'apparence et le comportement de votre portfolio"
+                        : "Customize the appearance and behavior of your portfolio"}
+                    </p>
+                  </div>
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm(t("resetConfigDesc"))) {
+                      resetConfig();
+                    }
+                  }}
+                  disabled={isResetting}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isResetting ? 'animate-spin' : ''}`} />
+                  {t("resetConfig")}
+                </Button>
+              </div>
+
+              <form onSubmit={handleUpdateConfig} className="space-y-10">
+                {/* ========== APPARENCE & THÈME ========== */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b">
+                    <Palette className="w-6 h-6 text-primary" />
+                    <h3 className="text-xl font-semibold">{t("themeSettings")}</h3>
+                  </div>
+
+                  <div className="space-y-6 pl-9">
+                    {/* Mode du thème */}
+                    <div>
+                      <Label className="text-base font-medium mb-3 block">{t("themeMode")}</Label>
+                      <p className="text-sm text-muted-foreground mb-4">{t("themeModeDesc")}</p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {[
+                          { value: 'light', label: t('lightOnly'), icon: Sun, color: 'bg-yellow-500/10 border-yellow-500/30' },
+                          { value: 'dark', label: t('darkOnly'), icon: Moon, color: 'bg-indigo-500/10 border-indigo-500/30' },
+                          { value: 'both', label: t('bothThemes'), icon: Palette, color: 'bg-purple-500/10 border-purple-500/30' },
+                        ].map(({ value, label, icon: Icon, color }) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setConfigFormData({ ...configFormData, theme_mode: value })}
+                            className={`
+                              relative p-5 rounded-xl border-2 transition-all text-left group hover:scale-105
+                              ${configFormData.theme_mode === value 
+                                ? `${color} border-primary shadow-lg ring-2 ring-primary/20` 
+                                : 'border-border hover:border-primary/50 bg-muted/30'}
+                            `}
+                          >
+                            <Icon className={`w-6 h-6 mb-3 ${configFormData.theme_mode === value ? 'text-primary' : 'text-muted-foreground'}`} />
+                            <div className="font-semibold mb-1">{label}</div>
+                            {configFormData.theme_mode === value && (
+                              <div className="absolute top-3 right-3">
+                                <div className="w-3 h-3 rounded-full bg-primary animate-pulse" />
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Prévisualisation */}
+                      <ThemePreview 
+                        mode={configFormData.theme_mode} 
+                        defaultTheme={configFormData.default_theme}
+                      />
+                    </div>
+
+                    {/* Options supplémentaires si mode "both" */}
+                    {configFormData.theme_mode === 'both' && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="space-y-5 pl-4 border-l-2 border-primary/30"
+                      >
+                        {/* Thème par défaut */}
+                        <div>
+                          <Label className="text-sm font-medium mb-3 block">{t("defaultTheme")}</Label>
+                          <p className="text-xs text-muted-foreground mb-3">{t("defaultThemeDesc")}</p>
+                          
+                          <div className="grid grid-cols-2 gap-3">
+                            {[
+                              { value: 'light', label: t('lightTheme'), icon: Sun },
+                              { value: 'dark', label: t('darkTheme'), icon: Moon },
+                            ].map(({ value, label, icon: Icon }) => (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => setConfigFormData({ ...configFormData, default_theme: value })}
+                                className={`
+                                  p-4 rounded-lg border-2 transition-all flex items-center gap-3
+                                  ${configFormData.default_theme === value 
+                                    ? 'border-primary bg-primary/5 shadow-sm' 
+                                    : 'border-border hover:border-primary/50'}
+                                `}
+                              >
+                                <Icon className="w-5 h-5" />
+                                <span className="font-medium">{label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Autoriser le changement */}
+                        <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
+                          <div className="flex items-start gap-3">
+                            <Shield className="w-5 h-5 mt-0.5 text-primary" />
+                            <div>
+                              <Label className="text-sm font-medium cursor-pointer">
+                                {t("allowSwitch")}
+                              </Label>
+                              <p className="text-xs text-muted-foreground mt-1">{t("allowSwitchDesc")}</p>
+                            </div>
+                          </div>
+                          <input
+                            type="checkbox"
+                            checked={configFormData.allow_theme_switch}
+                            onChange={(e) => setConfigFormData({ ...configFormData, allow_theme_switch: e.target.checked })}
+                            className="w-5 h-5 cursor-pointer accent-primary"
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                </section>
+
+                {/* ========== PARAMÈTRES GÉNÉRAUX ========== */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b">
+                    <Globe className="w-6 h-6 text-primary" />
+                    <h3 className="text-xl font-semibold">{t("generalSettings")}</h3>
+                  </div>
+
+                  <div className="grid gap-5 pl-9">
+                    <div className="grid md:grid-cols-2 gap-5">
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">{t("siteName")}</Label>
+                        <Input
+                          value={configFormData.site_name}
+                          onChange={(e) => setConfigFormData({ ...configFormData, site_name: e.target.value })}
+                          placeholder={t("siteNamePlaceholder")}
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">{t("siteLanguage")}</Label>
+                        <select
+                          value={configFormData.site_language}
+                          onChange={(e) => setConfigFormData({ ...configFormData, site_language: e.target.value })}
+                          className="w-full px-4 py-2 border border-border rounded-lg bg-background"
+                        >
+                          <option value="fr">🇫🇷 Français</option>
+                          <option value="en">🇬🇧 English</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">{t("siteDescription")}</Label>
+                      <Textarea
+                        value={configFormData.site_description}
+                        onChange={(e) => setConfigFormData({ ...configFormData, site_description: e.target.value })}
+                        placeholder={t("siteDescPlaceholder")}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl border-2 border-dashed">
+                      <div className="flex items-start gap-3">
+                        <AlertCircle className="w-5 h-5 mt-0.5 text-orange-500" />
+                        <div>
+                          <Label className="text-sm font-medium cursor-pointer text-orange-600">
+                            {t("maintenanceMode")}
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-1">{t("maintenanceModeDesc")}</p>
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={configFormData.maintenance_mode}
+                        onChange={(e) => setConfigFormData({ ...configFormData, maintenance_mode: e.target.checked })}
+                        className="w-5 h-5 cursor-pointer accent-orange-500"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                {/* ========== GALERIE ========== */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b">
+                    <Camera className="w-6 h-6 text-primary" />
+                    <h3 className="text-xl font-semibold">{t("gallerySettings")}</h3>
+                  </div>
+
+                  <div className="grid gap-5 pl-9">
+                    <div className="grid md:grid-cols-2 gap-5">
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">{t("imagesPerPage")}</Label>
+                        <Input
+                          type="number"
+                          min="6"
+                          max="50"
+                          value={configFormData.images_per_page}
+                          onChange={(e) => setConfigFormData({ ...configFormData, images_per_page: parseInt(e.target.value) || 12 })}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">{t("imagesPerPageDesc")}</p>
+                      </div>
+
+                      <div>
+                        <Label className="text-sm font-medium mb-2 block">{t("galleryLayout")}</Label>
+                        <select
+                          value={configFormData.gallery_layout}
+                          onChange={(e) => setConfigFormData({ ...configFormData, gallery_layout: e.target.value })}
+                          className="w-full px-4 py-2 border border-border rounded-lg bg-background"
+                        >
+                          <option value="grid">{t("layoutGrid")}</option>
+                          <option value="masonry">{t("layoutMasonry")}</option>
+                          <option value="justified">{t("layoutJustified")}</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
+                        <div className="flex items-start gap-3">
+                          <Eye className="w-5 h-5 mt-0.5 text-primary" />
+                          <div>
+                            <Label className="text-sm font-medium cursor-pointer">
+                              {t("enableDownload")}
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-1">{t("enableDownloadDesc")}</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={configFormData.enable_image_download}
+                          onChange={(e) => setConfigFormData({ ...configFormData, enable_image_download: e.target.checked })}
+                          className="w-5 h-5 cursor-pointer accent-primary"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
+                        <div className="flex items-start gap-3">
+                          <Shield className="w-5 h-5 mt-0.5 text-primary" />
+                          <div>
+                            <Label className="text-sm font-medium cursor-pointer">
+                              {t("watermarkEnabled")}
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-1">{t("watermarkEnabledDesc")}</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={configFormData.watermark_enabled}
+                          onChange={(e) => setConfigFormData({ ...configFormData, watermark_enabled: e.target.checked })}
+                          className="w-5 h-5 cursor-pointer accent-primary"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* ========== PERFORMANCE ========== */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b">
+                    <Zap className="w-6 h-6 text-primary" />
+                    <h3 className="text-xl font-semibold">{t("performanceSettings")}</h3>
+                  </div>
+
+                  <div className="grid gap-5 pl-9">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
+                        <div className="flex items-start gap-3">
+                          <Zap className="w-5 h-5 mt-0.5 text-primary" />
+                          <div>
+                            <Label className="text-sm font-medium cursor-pointer">
+                              {t("lazyLoading")}
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-1">{t("lazyLoadingDesc")}</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={configFormData.lazy_loading_enabled}
+                          onChange={(e) => setConfigFormData({ ...configFormData, lazy_loading_enabled: e.target.checked })}
+                          className="w-5 h-5 cursor-pointer accent-primary"
+                        />
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
+                        <div className="flex items-start gap-3">
+                          <Layers className="w-5 h-5 mt-0.5 text-primary" />
+                          <div>
+                            <Label className="text-sm font-medium cursor-pointer">
+                              {t("enableAnimations")}
+                            </Label>
+                            <p className="text-xs text-muted-foreground mt-1">{t("enableAnimationsDesc")}</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={configFormData.enable_animations}
+                          onChange={(e) => setConfigFormData({ ...configFormData, enable_animations: e.target.checked })}
+                          className="w-5 h-5 cursor-pointer accent-primary"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-5 bg-muted/30 rounded-xl border">
+                      <Label className="text-sm font-medium mb-2 block">{t("compressionQuality")}</Label>
+                      <p className="text-xs text-muted-foreground mb-4">{t("compressionQualityDesc")}</p>
+                      
+                      <div className="flex items-center gap-5">
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          step="5"
+                          value={configFormData.image_compression_quality}
+                          onChange={(e) => setConfigFormData({ ...configFormData, image_compression_quality: parseInt(e.target.value) })}
+                          className="flex-1 h-2 accent-primary"
+                        />
+                        <div className="min-w-[80px] text-center">
+                          <div className="text-2xl font-bold text-primary">{configFormData.image_compression_quality}</div>
+                          <div className="text-xs text-muted-foreground">%</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between text-xs text-muted-foreground mt-3">
+                        <span>{t("qualityLow")}</span>
+                        <span>{t("qualityMedium")}</span>
+                        <span>{t("qualityHigh")}</span>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* ========== SEO ========== */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b">
+                    <Search className="w-6 h-6 text-primary" />
+                    <h3 className="text-xl font-semibold">{t("seoSettings")}</h3>
+                  </div>
+
+                  <div className="grid gap-5 pl-9">
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">{t("metaTitle")}</Label>
+                      <Input
+                        value={configFormData.meta_title}
+                        onChange={(e) => setConfigFormData({ ...configFormData, meta_title: e.target.value })}
+                        placeholder={t("metaTitlePlaceholder")}
+                      />
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium mb-2 block">{t("metaKeywords")}</Label>
+                      <Input
+                        value={configFormData.meta_keywords}
+                        onChange={(e) => setConfigFormData({ ...configFormData, meta_keywords: e.target.value })}
+                        placeholder={t("metaKeywordsPlaceholder")}
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
+                      <div className="flex items-start gap-3">
+                        <BarChart3 className="w-5 h-5 mt-0.5 text-primary" />
+                        <div>
+                          <Label className="text-sm font-medium cursor-pointer">
+                            {t("enableAnalytics")}
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-1">{t("enableAnalyticsDesc")}</p>
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={configFormData.enable_analytics}
+                        onChange={(e) => setConfigFormData({ ...configFormData, enable_analytics: e.target.checked })}
+                        className="w-5 h-5 cursor-pointer accent-primary"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                {/* ========== SÉCURITÉ ========== */}
+                <section className="space-y-6">
+                  <div className="flex items-center gap-3 pb-3 border-b">
+                    <Shield className="w-6 h-6 text-primary" />
+                    <h3 className="text-xl font-semibold">{t("securitySettings")}</h3>
+                  </div>
+
+                  <div className="grid gap-5 pl-9">
+                    <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
+                      <div className="flex items-start gap-3">
+                        <EyeOff className="w-5 h-5 mt-0.5 text-primary" />
+                        <div>
+                          <Label className="text-sm font-medium cursor-pointer">
+                            {t("disableRightClick")}
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-1">{t("disableRightClickDesc")}</p>
+                        </div>
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={configFormData.disable_right_click}
+                        onChange={(e) => setConfigFormData({ ...configFormData, disable_right_click: e.target.checked })}
+                        className="w-5 h-5 cursor-pointer accent-primary"
+                      />
+                    </div>
+
+                    {configFormData.watermark_enabled && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="space-y-4 p-5 bg-muted/30 rounded-xl border"
+                      >
+                        <div>
+                          <Label className="text-sm font-medium mb-2 block">{t("watermarkText")}</Label>
+                          <Input
+                            value={configFormData.watermark_text}
+                            onChange={(e) => setConfigFormData({ ...configFormData, watermark_text: e.target.value })}
+                            placeholder={t("watermarkTextPlaceholder")}
+                          />
+                        </div>
+
+                        <div>
+                          <Label className="text-sm font-medium mb-2 block">{t("watermarkOpacity")}</Label>
+                          <div className="flex items-center gap-4">
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              step="5"
+                              value={configFormData.watermark_opacity}
+                              onChange={(e) => setConfigFormData({ ...configFormData, watermark_opacity: parseInt(e.target.value) })}
+                              className="flex-1 h-2 accent-primary"
+                            />
+                            <div className="min-w-[60px] text-center">
+                              <span className="text-lg font-bold text-primary">{configFormData.watermark_opacity}</span>
+                              <span className="text-xs text-muted-foreground">%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                </section>
+
+                {/* ========== BOUTONS D'ACTION ========== */}
+                <div className="flex items-center justify-between pt-6 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    {language === "fr" 
+                      ? "Dernière modification : " + (siteConfig?.updated_at ? new Date(siteConfig.updated_at).toLocaleString('fr-FR') : "Jamais")
+                      : "Last modified: " + (siteConfig?.updated_at ? new Date(siteConfig.updated_at).toLocaleString('en-US') : "Never")}
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => refetch()}
+                      disabled={isLoading}
+                      className="gap-2"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                      {language === "fr" ? "Actualiser" : "Refresh"}
+                    </Button>
+
+                    <Button
+                      type="submit"
+                      disabled={isUpdating}
+                      size="lg"
+                      className="gap-2 min-w-[180px]"
+                    >
+                      {isUpdating ? (
+                        <>
+                          <RefreshCw className="w-4 h-4 animate-spin" />
+                          {t("saving")}
+                        </>
+                      ) : (
+                        <>
+                          <Settings className="w-4 h-4" />
+                          {t("saveConfig")}
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </form>
+            </motion.div>
+          </TabsContent>
 
           <TabsContent value="gallery" className="space-y-6 md:space-y-8">
             <motion.div

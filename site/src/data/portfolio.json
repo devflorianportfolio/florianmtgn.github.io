@@ -1,0 +1,87 @@
+{
+  "general": {
+    "title": "Portfolio",
+    "logo": "⚠️",
+    "description": "Portfolio de photographie artistique et portrait"
+  },
+  "about": {
+    "name": "À propos",
+    "subtitle": "Capturer l'émotion, révéler l'essence",
+    "description": "Photographe passionné depuis plus de 8 ans, je me spécialise dans le portrait artistique et la photographie conceptuelle. Mon approche se concentre sur la capture de moments authentiques et l'expression de l'individualité de chaque sujet.",
+    "profileImage": "data:image/png;base64,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"
+  },
+  "contact": {
+    "email": "florian@contact.com",
+    "phone": "+33 1 23 45 67 89",
+    "address": "Paris, France"
+  },
+  "social": {
+    "instagram": "",
+    "twitter": "",
+    "linkedin": ""
+  },
+  "skills": [
+    {
+      "title": "Portrait Artistique",
+      "description": "Révéler la personnalité unique de chaque individu à travers des compositions réfléchies et un éclairage maîtrisé."
+    },
+    {
+      "title": "Photographie de Mode",
+      "description": "Collaboration avec des créateurs pour donner vie à leurs visions artistiques à travers l'image."
+    },
+    {
+      "title": "Événementiel",
+      "description": "Capturer l'essence des moments importants avec discrétion et créativité."
+    }
+  ],
+  "work": [
+    {
+      "image": "https://i.ibb.co/6RwgknT8/494579273-9569905496453358-4805905556807423817-n.jpg",
+      "alt": "Portrait artistique",
+      "category": "Portrait"
+    },
+    {
+      "image": "https://i.ibb.co/39gndyfL/494575252-1153428473205755-5523850351273621540-n.jpg",
+      "alt": "Portrait artistique",
+      "category": "Portrait"
+    },
+    {
+      "image": "https://i.ibb.co/JRMQQcHD/494575517-1656921818293353-5467735360573365563-n.jpg",
+      "alt": "Portrait artistique",
+      "category": "Portrait"
+    },
+    {
+      "image": "https://i.ibb.co/99743J6Z/494577123-1222164252914950-2187654643705966028-n.jpg",
+      "alt": "Portrait artistique",
+      "category": "Portrait"
+    }
+  ],
+  "portraits": [
+    {
+      "image": "https://i.ibb.co/6RwgknT8/494579273-9569905496453358-4805905556807423817-n.jpg",
+      "alt": "Portrait",
+      "category": "Street"
+    },
+    {
+      "image": "https://i.ibb.co/39gndyfL/494575252-1153428473205755-5523850351273621540-n.jpg",
+      "alt": "Portrait",
+      "category": "Duo"
+    },
+    {
+      "image": "https://i.ibb.co/JRMQQcHD/494575517-1656921818293353-5467735360573365563-n.jpg",
+      "alt": "Portrait",
+      "category": "Concert"
+    },
+    {
+      "image": "https://i.ibb.co/99743J6Z/494577123-1222164252914950-2187654643705966028-n.jpg",
+      "alt": "Portrait",
+      "category": "Street"
+    }
+  ],
+  "awards": [
+    {
+      "title": "Concert",
+      "description": "Je sais pas quoi mettre"
+    }
+  ]
+}

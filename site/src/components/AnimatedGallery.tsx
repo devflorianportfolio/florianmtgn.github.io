@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useGalleryImages } from "@/hooks/useGalleryImages";
 import { Skeleton } from "./ui/skeleton";
 import { ImageLightbox } from "./ImageLightbox";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldAlert } from "lucide-react";
 
 interface GalleryImage {
   id: string;
@@ -77,6 +79,8 @@ export const AnimatedGallery = () => {
   const [lightboxOpenTime, setLightboxOpenTime] = useState<number>(0);
   const [loadedImages, setLoadedImages] = useState<Set<string>>(new Set());
   const [imageColors, setImageColors] = useState<Map<string, string>>(new Map());
+  const [devToolsOpen, setDevToolsOpen] = useState(false);
+  const devToolsCheckRef = useRef<NodeJS.Timeout | null>(null);
   const { data: images, isLoading } = useGalleryImages();
   const { t } = useLanguage();
   const { trackGalleryInteraction, trackClick, trackSearch } = useAnalytics();
@@ -89,6 +93,31 @@ export const AnimatedGallery = () => {
   const filteredImages = filter === "all" 
     ? images 
     : images?.filter((img: GalleryImage) => img.category === filter);
+
+  // Détection DevTools
+  const detectDevTools = useCallback(() => {
+    const threshold = 160;
+    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+    const orientation = widthThreshold ? 'vertical' : 'horizontal';
+
+    const isOpen = (heightThreshold && orientation === 'horizontal') || 
+                   (widthThreshold && orientation === 'vertical');
+    
+    setDevToolsOpen(isOpen);
+  }, []);
+
+  // Vérifier DevTools régulièrement
+  useEffect(() => {
+    detectDevTools();
+    devToolsCheckRef.current = setInterval(detectDevTools, 1000);
+    
+    return () => {
+      if (devToolsCheckRef.current) {
+        clearInterval(devToolsCheckRef.current);
+      }
+    };
+  }, [detectDevTools]);
 
   // Précharger les images et extraire les couleurs
   useEffect(() => {
@@ -138,6 +167,11 @@ export const AnimatedGallery = () => {
   };
 
   const handleImageClick = (index: number) => {
+    // Bloquer l'ouverture si DevTools est ouvert
+    if (devToolsOpen) {
+      return;
+    }
+    
     const image = filteredImages[index];
     setSelectedIndex(index);
     setLightboxOpenTime(Date.now());
@@ -193,6 +227,25 @@ export const AnimatedGallery = () => {
 
   return (
     <>
+      {/* Alerte DevTools */}
+      {devToolsOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4"
+        >
+          <Alert className="border-red-500 bg-red-50 dark:bg-red-950">
+            <ShieldAlert className="h-5 w-5 text-red-600" />
+            <AlertTitle className="text-red-600 font-bold">
+              Outils de développement détectés
+            </AlertTitle>
+            <AlertDescription className="text-red-700 dark:text-red-400">
+              Pour des raisons de sécurité, veuillez fermer les outils de développement pour accéder aux images en plein écran.
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+      )}
+
       <motion.section 
         id="work"
         className="py-16 md:py-24 px-2 md:px-4"
@@ -273,7 +326,9 @@ export const AnimatedGallery = () => {
                   viewport={{ once: true, margin: "-50px" }}
                   transition={{ duration: 0.4, delay: index * 0.03 }}
                   onClick={() => handleImageClick(index)}
-                  className="gallery-item relative overflow-hidden rounded-md cursor-pointer group"
+                  className={`gallery-item relative overflow-hidden rounded-md group ${
+                    devToolsOpen ? 'cursor-not-allowed' : 'cursor-pointer'
+                  }`}
                   style={{
                     aspectRatio: image.width && image.height 
                       ? `${image.width} / ${image.height}` 
@@ -287,6 +342,8 @@ export const AnimatedGallery = () => {
                   <motion.img
                     src={image.image_url}
                     alt={image.alt}
+                    data-protected="true"
+                    data-real-image={image.id}
                     className="gallery-image w-full h-full object-cover transition-opacity duration-500"
                     loading="lazy"
                     decoding="async"

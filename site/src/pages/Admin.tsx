@@ -1458,24 +1458,6 @@ const Admin = () => {
                   </div>
 
                   <div className="grid gap-5 pl-9">
-                    <div>
-                      <Label className="text-sm font-medium mb-2 block">{t("metaTitle")}</Label>
-                      <Input
-                        value={configFormData.meta_title}
-                        onChange={(e) => setConfigFormData({ ...configFormData, meta_title: e.target.value })}
-                        placeholder={t("metaTitlePlaceholder")}
-                      />
-                    </div>
-
-                    <div>
-                      <Label className="text-sm font-medium mb-2 block">{t("metaKeywords")}</Label>
-                      <Input
-                        value={configFormData.meta_keywords}
-                        onChange={(e) => setConfigFormData({ ...configFormData, meta_keywords: e.target.value })}
-                        placeholder={t("metaKeywordsPlaceholder")}
-                      />
-                    </div>
-
                     <div className="flex items-center justify-between p-4 bg-background rounded-xl border">
                       <div className="flex items-start gap-3">
                         <BarChart3 className="w-5 h-5 mt-0.5 text-primary" />
